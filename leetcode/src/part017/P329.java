@@ -43,11 +43,17 @@ public class P329 {
     }
 }
 
+class Solution{
+    public int longestIncreasingPath(int[][] matrix) {
+        return 0;
+    }
+}
+
 /**
  * 我自己尝试的解法
  * 简单点 暴力穷举
  */
-class Solution {
+class Solution0 {
     static int iLength;
     static int jLength;
     public int longestIncreasingPath(int[][] matrix) {
