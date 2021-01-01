@@ -1,6 +1,11 @@
 package part017;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.Stack;
 
@@ -37,9 +42,9 @@ import java.util.Stack;
 public class P329 {
 
     public static void main(String[] args) {
-        System.out.println(new Solution().longestIncreasingPath(new int[][]{{9,9,4},{6,6,8},{2,1,1}}));
-        System.out.println(new Solution().longestIncreasingPath(new int[][]{{3,4,5},{3,2,6},{2,2,1}}));
-        System.out.println(new Solution().longestIncreasingPath(new int[][]{{1,2}}));
+        System.out.println(new Solution1().longestIncreasingPath(new int[][]{{9,9,4},{6,6,8},{2,1,1}}));
+        System.out.println(new Solution1().longestIncreasingPath(new int[][]{{3,4,5},{3,2,6},{2,2,1}}));
+        System.out.println(new Solution1().longestIncreasingPath(new int[][]{{1,2}}));
     }
 }
 
@@ -51,7 +56,8 @@ class Solution{
 
 /**
  * 我自己尝试的解法
- * 简单点 暴力穷举
+ * 简单点 深度优先
+ * 广度优先也能写出来, 不过深度已经超时间了, 就先不写
  */
 class Solution0 {
     static int iLength;
@@ -149,6 +155,97 @@ class Solution0 {
             this.jNot = new HashSet<>(2);
             this.iNot.addAll(point.iNot);
             this.jNot.addAll(point.jNot);
+        }
+    }
+}
+
+/**
+ * 还是我尝试的解法
+ * 这次采用动态规划来做, 先找出路径1的, 再找出路径2的, 然后2拼1拼出3, 3拼2拼出5, 3拼1拼出4, 拼到不能拼为止
+ */
+class Solution1{
+    public int longestIncreasingPath(int[][] matrix) {
+        int length = matrix.length;
+        if (length == 0){
+            return 0;
+        }
+        int width = matrix[0].length;
+        // 各级路径点
+        Map<Integer, Map<Point, Point>> roads = new HashMap<>();
+        Map<Point, Point> first = new HashMap<>();
+        for (int i = 0; i < length; i++) {
+            for (int j = 0; j < width; j++) {
+                Point point = new Point(i, j);
+                first.put(point, point);
+            }
+        }
+        roads.put(1, first);
+
+        // 从最后一级路径往之前匹配
+        int max = 1;
+        while (true){
+            boolean notMore = true;
+            int current = max;
+            for (int i = current; i > 0; i--) {
+                Map<Point, Point> maxRoad = roads.get(current);
+                Map<Point, Point> willRoad = roads.get(i);
+                if (willRoad == null){
+                    continue;
+                }
+                Map<Point, Point> next = new HashMap<>();
+                // 匹配开始
+                for (Map.Entry<Point, Point> entry : maxRoad.entrySet()) {
+                    qq:for (int j = -1; j < 1; j+=2) {
+                        for (int k = -1; k < 1; k+=2) {
+                            int x = entry.getValue().x + j;
+                            int y = entry.getValue().y + k;
+                            Point point = new Point(x, y);
+                            if (willRoad.containsKey(point) && matrix[entry.getValue().x][entry.getValue().y] < matrix[x][y]){
+                                next.put(entry.getKey(), willRoad.get(point));
+                                break qq;
+                            }
+                        }
+                    }
+                }
+                if (!next.isEmpty()){
+                    notMore = false;
+                    roads.put(current + i, next);
+                    max = Math.max(max, current + i);
+                }
+                if (i == 1 && !notMore){
+                    current ++;
+                }
+                if (notMore && i == 1){
+                    return max;
+                }
+            }
+            if (notMore){
+                return max;
+            }
+        }
+    }
+
+    private static class Point{
+        int x;
+        int y;
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Point point = (Point) o;
+            return x == point.x &&
+                    y == point.y;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(x, y);
+        }
+
+        public Point(int x, int y) {
+            this.x = x;
+            this.y = y;
         }
     }
 }
